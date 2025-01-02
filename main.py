@@ -1,10 +1,12 @@
 import threading
 import json
 import sys
+import os
 import socket
 
 from pydantic import BaseModel
 
+from module.module import check_length, load_file, save_file
 
 client_ids: list[str] = []
 client_list : list[socket] = []
@@ -13,6 +15,7 @@ message_list = {}
 MINIMUM_SIZE:int = 4
 MAX_SIZE:int = (1024*100)
 ENCODING:str = 'ascii'
+DATAFILE:str = os.getcwd()+"/src/data.json"
 ip = '127.0.0.1'
 port = 200
 
@@ -22,19 +25,8 @@ class Message(BaseModel):
 	msg:str
 	type:str
 
-def check_length(value):
-	length = str(len(value))
-	match len(length):
-		case 1:
-			return f"000{length}"
-		case 2:
-			return f"00{length}"
-		case 3:
-			return f"0{length}"
-		case 4:
-			return f"{length}"
-
 def send_msg(id:str, message:Message):
+	global message_list
 	client = None
 	try:
 		if id in client_ids:
@@ -59,9 +51,10 @@ def send_msg(id:str, message:Message):
 		print(client, "Removed !")
 
 def receive_message(client):
+	global message_list
 	while True:
 		try:
-			length = int(client.recv(MINMUM_SIZE).decode(ENCODING))
+			length = int(client.recv(MINIMUM_SIZE).decode(ENCODING))
 			message = client.recv(length)
 			message_dict = json.loads(message.decode(ENCODING))
 
@@ -72,21 +65,37 @@ def receive_message(client):
 			except KeyError:
 				message_list[id] = []
 				message_list[id].append(message_dict)
+
+			save_file(DATAFILE, message_list)
 		except ConnectionResetError:
 			client.close()
 			break
 
 
 def check_message(id:str):
+	global message_list
+	msg = []
+	message_list = load_file(DATAFILE)
 	print(f"Checking any Message received for {id}")
 	if id in message_list.keys():
-		print(f"Message Found for {id}")
+		print(f"Message Found for {id} \n message -> {message_list[id]}")
+		print(f"  ")
 		try:
+			print("list >>> ", message_list[id])
 			for message in message_list[id]:
+			#for index in range(len(message_list[id])):
+				#message = message_list[id][index]
+				print(f"Message >>> {message}")
 				send_msg(id, message)
-				message_list[id].remove(message)
+				msg.append(message)
+				#message_list[id].remove(message)
+				
 		except Exception as e:
 			print(e)
+	for message in message_list[id]:
+		if message in msg:
+			message_list[id].remove(message)
+	save_file(DATAFILE, message_list)
 
 
 def listener(server):
@@ -100,7 +109,7 @@ def listener(server):
 
 
 def manage(client, addrs):
-
+	global message_list
 	try:
 		id = client.recv(MAX_SIZE).decode(ENCODING)
 		if not id in client_ids:
@@ -127,6 +136,8 @@ def manage(client, addrs):
 		print(f"{client} is DisConnected")
 
 def commands(server):
+
+	global message_list
 	while True:
 		text = input("/Server:")
 		text = text.lower()
@@ -137,6 +148,7 @@ def commands(server):
 				print("Closing Server...")
 				server.close()
 				server = None
+				save_file(DATAFILE, message_list)
 				break
 				sys.exit()
 				print("Closed !!")
@@ -149,8 +161,12 @@ def commands(server):
 					print(client)
 			case "list":
 				print("list client | list id")
+
 			case "view":
 				print(message_list)
+			case "view data":
+				for id in message_list:
+					print(message_list[id])
 			case "view message":
 				for id in message_list:
 					print(id)
@@ -164,9 +180,21 @@ def commands(server):
 
  
 def main(host, port):
+	global message_list
 	server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 	server.bind((host, port))
 	server.listen()
+
+	value = load_file(DATAFILE)
+	print(type(value), value)
+	if type(value) == dict:
+		message_list = value
+		print("DICT >>>>> ")
+	if value == "Not Found":
+		save_file(DATAFILE, message_list)
+		message_list = load_file(DATAFILE)
+
+	print(message_list)
 
 
 

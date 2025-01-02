@@ -5,6 +5,7 @@ import sys
 
 from pydantic import BaseModel
 
+from module.module import check_length, load_file, save_file 
 
 
 MAX_SIZE:int = (1024*100)
@@ -19,20 +20,6 @@ class Message(BaseModel):
 	id:str
 	msg:str
 	type:str
-
-
-
-def check_length(value):
-	length = str(len(value))
-	match len(length):
-		case 1:
-			return f"000{length}"
-		case 2:
-			return f"00{length}"
-		case 3:
-			return f"0{length}"
-		case 4:
-			return f"{length}"
 
 
 def send_message(server, message):
@@ -53,7 +40,7 @@ def receive_message(server):
 			print('Waiting For Receive.....')
 			length = int(server.recv(MINIMUM_SIZE).decode(ENCODING))
 			message = server.recv(length)
-			print("Received Bytes >>",message)
+			#print("Received Bytes >>",message)
 
 			message_dict = json.loads(message.decode(ENCODING))
 
@@ -98,12 +85,14 @@ def main():
 		if not text == "":
 			message = {
 				'id' : to_name,
+				'from' : name,
 				'type' : 'text',
 				'msg' : text
 			}
 			message_bytes = json.dumps(message).encode(ENCODING)
 
 			reponse = send_message(server, message_bytes)
+			print(reponse)
 			if reponse == "Closed":
 				break	
 

@@ -1,0 +1,13 @@
+
+# <- a point
+$ <- completed
+! <- ongoing work
+@ <- important work
+
+
+
+		#  
+
+
+
+
