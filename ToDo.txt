@@ -6,8 +6,9 @@ $ <- completed
 
 
 
-		#  
-
-
+		# on-time send message signal
+		# store data in sqlite
+		# easy to use as frame-work
+		# 
 
 
