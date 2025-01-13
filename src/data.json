@@ -1,13 +1,6 @@
 {
     "@dinesh": [],
-    "@appu": [
-        {
-            "id": "@appu",
-            "from": "@dinesh",
-            "type": "text",
-            "msg": "ls"
-        }
-    ],
+    "@appu": [],
     "@vasanth": [],
     "@hi da": [
         {

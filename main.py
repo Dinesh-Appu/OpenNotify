@@ -23,6 +23,7 @@ port = 200
 
 class Message(BaseModel):
     id:str
+    to:str
     msg:str
     type:str
 

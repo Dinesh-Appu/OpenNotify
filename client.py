@@ -11,8 +11,7 @@ from module.module import check_length, load_file, save_file
 MAX_SIZE:int = (1024*100)
 MINIMUM_SIZE:int = 4
 ENCODING:str = 'ascii'
-ip = '127.0.0.1'
-port = 200
+server = ""
 
 
 
@@ -21,12 +20,26 @@ class Message(BaseModel):
 	msg:str
 	type:str
 
+def setmessage(message:dict):
+	if message['id'] == None:
+		raise TypeError("Id Is None!")
 
-def send_message(server, message):
+	if message['from'] == None:
+		raise TypeError("Fron is None!")
+
+	return message
+
+
+def send_message(message):
+	global server
+	message = setmessage(message)
+	if message == None:
+		raise NoneType("Message Not Send")
+	message_bytes = json.dumps(message).encode(ENCODING)
 	try:
-		length = check_length(message)
+		length = check_length(message_bytes)
 		server.send(length.encode(ENCODING))
-		server.send(message)
+		server.send(message_bytes)
 		return "Ok"
 
 	except ConnectionResetError:
@@ -34,7 +47,8 @@ def send_message(server, message):
 		return "Closed"
 
 
-def receive_message(server):
+def receive_message():
+	global server
 	while True:
 		try:
 			print('Waiting For Receive.....')
@@ -50,15 +64,18 @@ def receive_message(server):
 			print("Server Receiver Connection is Closed!")
 			break
 
+def SetClient( ip, port):
+	main(ip, port)
 
-def main():
+def main(ip, port):
+	global server
 	server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 	try:
 		server.connect((ip, port))
 	except ConnectionRefusedError:
 		print(" Server is Not Found")
 		return
-	receive_thread = threading.Thread(target=lambda:receive_message(server), daemon= True)
+	receive_thread = threading.Thread(target=lambda:receive_message(), daemon= True)
 
 	while True:
 		name = '@'+input("Enter Id :")
@@ -89,16 +106,14 @@ def main():
 				'type' : 'text',
 				'msg' : text
 			}
-			message_bytes = json.dumps(message).encode(ENCODING)
-
-			reponse = send_message(server, message_bytes)
+			reponse = send_message(message)
 			print(reponse)
 			if reponse == "Closed":
 				break	
 
 
 if __name__ == '__main__':
-	main()
+	main('127.0.0.1', 200)
 
 
 
