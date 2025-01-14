@@ -1,13 +1,3 @@
 {
-    "@dinesh": [],
-    "@appu": [],
-    "@vasanth": [],
-    "@hi da": [
-        {
-            "id": "@hi da",
-            "from": "@appu",
-            "type": "text",
-            "msg": "fff"
-        }
-    ]
+    "@temp": []
 }

@@ -5,7 +5,8 @@ import sys
 
 def load_file(filename:str):
 	try:
-		file = open(filename, 'r')
+		file = open(filename, 'r', encoding='utf-8')
+		print(filename ,file.read())
 		data = json.load(file)
 		return data
 	except FileNotFoundError:
