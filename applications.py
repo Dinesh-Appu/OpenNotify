@@ -1,3 +1,5 @@
+
+# system packages 
 import socket
 import threading
 import sys
@@ -5,9 +7,10 @@ import os
 import json
 import uuid
 
-from  PyQt5.QtCore import QObject, pyqtSignal
+# custom models
 from .module.module import check_length, load_file, save_file
-
+from .module.exceptions import ServerAuthenticationError
+from .module.models import MessageModel
 
 class Server():
 	
@@ -18,12 +21,17 @@ class Server():
 		self.client_list : list[socket] = []
 		self.message_list:dict = {}
 		self.app_list:dict = {}
-
+		self.APPNAME:str = None
+		self.APPID:str = None
 		self.MINIMUM_SIZE:int = 4
 		self.MAX_SIZE:int = (1024*100)
 		self.ENCODING:str = 'ascii'
-		self.DATAFILE:str = os.getcwd()+"./src/data.json"
-		self.APPFILE:str = os.getcwd()+"./src/app.json"
+		self.DATAFILE:str = os.getcwd()+"/src/data.json"
+		self.APPFILE:str = os.getcwd()+"/src/app.json"
+
+		self.model : MessageModel = None
+
+		
 
 
 	def start(self):
@@ -31,28 +39,23 @@ class Server():
 	    self.server.bind((self.IP, self.PORT))
 	    self.server.listen()
 
-	    value = load_file(self.DATAFILE)
-	    if type(value) == dict:
-	        self.message_list = value
-	    if value == "Not Found":
-	        save_file(self.DATAFILE, self.message_list)
-	        self.message_list = load_file(self.DATAFILE)
-	        print(self.DATAFILE)
+	    if self.model == None:
+	    	raise AttributeError("messageModel is 'NoneType'. Set using 'objectName.setModel()'")
 
-	    apps = load_file(self.APPFILE)
-	    if type(apps) == dict:
-	        self.app_list = apps
-	    if apps == "Not Found":
-	    	self.app_list = {}
-	    	save_file(self.APPFILE, self.app_list)
+	    if self.APPNAME == None:
+	    	raise AttributeError("APP Name is 'NoneType'. Set Using 'objectName.generateID()'")
 
+	    if self.APPID == None:
+	    	raise AttributeError("APP Id is 'NoneType'. Set Using 'objectName.generateID()'")
+
+	    self.show_info()
 
 	    listen_thread = threading.Thread(target=lambda:self.listener(), daemon =True)
 	    listen_thread.start()
 
 	    self.commands(self.server)
 
-	def getarateID(app_name: str) -> str:
+	def generateID(self, app_name: str) -> str:
 		# Remove Space 
 		app_name = app_name.replace(" ","")
 		if app_name == "":
@@ -60,12 +63,23 @@ class Server():
 		if app_name in self.app_list.keys():
 			raise KeyError("App Name {app_name} Already Exits!")
 
-		id = uuid.uuid4()
-		self.app_list[app_name] = id
-		save_file(self.APPFILE, self.app_list)
+		id = str(uuid.uuid4())
+		self.APPNAME = app_name
+		self.APPID = id
+
+		data = { 'app_name': self.APPNAME, 'app_id' : self.APPID }
+		save_file(self.DATAFILE, data)
+
+		#self.app_list[app_name] = id
+		#save_file(self.APPFILE, self.app_list)
 		return id
 
-
+	def setModel(self, messagemodel:MessageModel) -> None:
+		self.model = messagemodel
+		#text = f""" CREATE TABEL IF NOT EXITS {tabel_name} VALUES ({}, {})"""
+	
+	def  show_info(self):
+		print(f" Server Ip >> {self.IP} \n Server Port >> {self.PORT} \n App Name >> {self.APPNAME} \n APP ID >> {self.APPID}")
 
 	def send_msg(self, id:str, message):
 	    client = None
@@ -189,7 +203,7 @@ class Server():
 
 	def commands(self, server):
 	    while True:
-	        text = input("/Server:")
+	        text = input("\n /Server:")
 	        text = text.lower()
 	        match text:
 	            case "":

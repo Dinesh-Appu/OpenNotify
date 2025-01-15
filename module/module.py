@@ -1,10 +1,12 @@
 import json
 import sys
+import os
 
 
 
 def load_file(filename:str):
 	try:
+		check_path(filename)
 		file = open(filename, 'r', encoding='utf-8')
 		print(filename ,file.read())
 		data = json.load(file)
@@ -17,14 +19,33 @@ def load_file(filename:str):
 
 def save_file(filename:str, data):
 	try:
-		with open(filename, 'w') as file:
-			data = json.dump( data, file, indent= 4)
-			return f"File in {filename}"
+		check_path(filename)
+		file = open(filename, 'w')
+		json.dump( data, file, indent= 4)
+		file.close()
+		return f"File in {filename}"
 
 	except Exception as e:
+		print(e)
 		return f"ERROR >>> {e}"
 
 
+def check_path(filename):
+	i= 0
+	path = ""
+	for folder in filename.split('/'):
+		i = i+1
+		if len(filename.split('/')) == i:
+			pass
+		elif folder.find(":") == 1:
+			if path == "":
+				path = folder + "/"
+		else:
+			path = path + folder+ "/" 
+			if not os.path.exists(path):
+				os.makedirs(path)
+
+	return path
 
 def check_length(value):
 	length = str(len(value))
@@ -91,5 +112,8 @@ if __name__ == '__main__':
 	filename = "../src/test.json"
 	value = data_load(data)
 	print(value)
+
+	#print(check_path('G:/Github/projects/src/.data.json'))
+
 
 
