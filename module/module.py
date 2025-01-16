@@ -7,8 +7,7 @@ import os
 def load_file(filename:str):
 	try:
 		check_path(filename)
-		file = open(filename, 'r', encoding='utf-8')
-		print(filename ,file.read())
+		file = open(filename, 'r')
 		data = json.load(file)
 		return data
 	except FileNotFoundError:

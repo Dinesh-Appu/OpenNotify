@@ -11,6 +11,7 @@ import uuid
 from .module.module import check_length, load_file, save_file
 from .module.exceptions import ServerAuthenticationError
 from .module.models import MessageModel
+from .module.database import Database
 
 class Server():
 	
@@ -30,6 +31,10 @@ class Server():
 		self.APPFILE:str = os.getcwd()+"/src/app.json"
 
 		self.model : MessageModel = None
+		self.database = Database()
+
+
+		self.getInfo()
 
 		
 
@@ -81,6 +86,16 @@ class Server():
 	def  show_info(self):
 		print(f" Server Ip >> {self.IP} \n Server Port >> {self.PORT} \n App Name >> {self.APPNAME} \n APP ID >> {self.APPID}")
 
+	def getInfo(self) -> dict:
+		result = load_file(self.DATAFILE)
+		if type(result) == str:
+			return result
+
+		self.APPID =  result['app_id']
+		self.APPNAME =  result['app_name']
+
+		return result
+
 	def send_msg(self, id:str, message):
 	    client = None
 	    try:
@@ -116,14 +131,13 @@ class Server():
 	            message_dict = json.loads(message.decode(self.ENCODING))
 
 	            id = message_dict['id']
-	            try:
-	                self.message_list[id].append(message_dict)
-
-	            except KeyError:
-	                self.message_list[id] = []
-	                self.message_list[id].append(message_dict)
-
-	            save_file(self.DATAFILE, self.message_list)
+	            print(message)
+	            result = self.database.addMessageDict(message_dict, self.model)
+	            if result == "success":
+	            	print("added")
+	            else:
+	            	print(result)
+	            
 	        except ConnectionResetError:
 	            client.close()
 	            break
@@ -172,10 +186,12 @@ class Server():
 
 	    	if auth:
 	    		auth = auth.split(':')
-	    		if not auth[0] in self.app_list.keys() or not auth[1] in self.app_list.values():
+	    		if not auth[0] == self.APPNAME or not auth[1] == self.APPID:
 	    			client.send("NotAuth".encode(self.ENCODING))
 	    			client.close()
 	    			return
+	    		else:
+	    			client.send("OK".encode(self.ENCODING))
 
 
 
@@ -253,8 +269,9 @@ class Client():
 		self.MAX_SIZE:int = (1024*100)
 		self.MINIMUM_SIZE:int = 4
 		self.ENCODING:str = 'ascii'
-		self.APP_ID:str
-		self.APP_NAME:str
+		self.APPID:str = None
+		self.APPNAME:str = None
+		self.ID:str = None
 
 		# Objects
 		self.server = ""
@@ -263,27 +280,32 @@ class Client():
 
 
 
-	def start( self):
+	def start( self) -> None:
+
+		if self.APPID == None:
+			raise AttributeError("App Id is 'NoneType'. To set app id use Object(Client).setAppId")
+
+		if self.APPNAME == None:
+			raise AttributeError("App Name is 'NoneType'. To set app id use Object(Client).setAppName")
+
+		if self.ID == None:
+			raise AttributeError(" Id is 'NoneType'. To set app id use Object(Client).setId")
+			
 		self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 		try:
 			self.server.connect((self.IP, self.PORT))
 		except ConnectionRefusedError:
 			#print(f" Server {self.IP}:{self.PORT} is Not Found")
 			raise ConnectionRefusedError(f" Server {self.IP}:{self.PORT} is Not Found")
+		
 		receive_thread = threading.Thread(target=lambda:self.receive_message(), daemon= True)
 
-		if self.APP_ID == None:
-			raise AttributeError("App Name is 'NoneType'. To set app id use Object(Client).setAppId")
-
-		if self.APP_NAME == None:
-			raise AttributeError("App Name is 'NoneType'. To set app id use Object(Client).setAppName")
-
 		# client sending id+name for verification you can set id, name by ObjectName.setAppId, ObjectName.setAppName
-		self.server.send((self.APP_ID+":"+self.APP_NAME).encode(self.ENCODING))
+		self.server.send((self.APPNAME+":"+self.APPID).encode(self.ENCODING))
 		respond = self.server.recv(self.MAX_SIZE).decode(self.ENCODING)
 
 		if not respond == "OK":
-			print(respond)
+			print("Respond -> ",respond)
 			match respond:
 				case "NotAuth":
 					raise ServerAuthenticationError("Authentication Failed!")
@@ -291,31 +313,39 @@ class Client():
 					raise Exception("")
 				#raise Exception("Error >>> ",respond)
 
+		self.server.send(self.ID.encode(self.ENCODING))
+		response = self.server.recv(self.MAX_SIZE).decode(self.ENCODING)
+		if not response == 'OK':
+			raise ConnectionRefusedError(f"Response is {response}!")
+
 		
 		receive_thread.start()
 
-	def sendMessage(self, message):
+	def sendMessage(self, message) -> None:
 		reponse = self.send_message(message)
 		if reponse == "Closed":
-			raise ConnectionResetError(" Server {self.IP}:{self.PORT} is Closed! ")
+			raise ConnectionResetError(f" Server {self.IP}:{self.PORT} is Closed! ")
 
 	def setAppName(self, name:str) -> None:
-		self.APP_NAME = name
+		self.APPNAME = name
 
-	def setAppId(self, id):
-		self.APP_ID = id
+	def setAppId(self, id) -> None:
+		self.APPID = id
+
+	def setId(self, id) -> None:
+		self.ID = id
 
 
-	def check_message(self, message:dict):
+	def check_message(self, message:dict) -> dict:
 		if message['id'] == None:
-			raise TypeError("Id Is None!")
+			raise TypeError("'Id' Is None!")
 
-		if message['from'] == None:
-			raise TypeError("Fron is None!")
+		if message['to_id'] == None:
+			raise TypeError("'To' is None!")
 
 		return message
 
-	def send_message(self, message):
+	def send_message(self, message) -> str:
 		message = self.check_message(message)
 		if message == None:
 			raise NoneType("Message Not Send")
@@ -332,7 +362,7 @@ class Client():
 			print('Server Connection is Closed!')
 			return "Closed"
 
-	def receive_message(self):
+	def receive_message(self) -> None:
 		while True:
 			try:
 				print('Waiting For Receive.....')
@@ -346,7 +376,7 @@ class Client():
 				self.receiver.emit(message_dict)
 
 			except ConnectionResetError:
-				print("Server Receiver Connection is Closed!")
+				print(f" Server {self.IP}:{self.PORT} Connection is Closed! ")
 				break
 
 

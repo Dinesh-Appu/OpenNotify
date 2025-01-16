@@ -7,10 +7,10 @@ $ <- completed
 
 
 	$	# on-time send message signal
-		# store data in sqlite
+	!	# store data in sqlite
 		# easy to use as frame-work
 	$	# make as a python package
 		# Two step Client verification
-		# custom exceptions
-		# custom message model
+	!	# custom exceptions
+	!	# custom message model
 

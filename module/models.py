@@ -5,7 +5,7 @@
 class MessageModel():
 
 	id: str = None
-	to: str = None
+	to_id: str = None
 
 	def __init__(self):
 		print("message model")
@@ -26,4 +26,9 @@ class MessageModel():
 
 
 		return items
+
+
+	def getVariablesType(self) -> dict:
+		value = self.__annotations__
+		return value
 
