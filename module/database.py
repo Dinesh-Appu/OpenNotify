@@ -25,7 +25,7 @@ class Database:
 			return 'success'
 
 		except Exception as e:
-			return e
+			return f"Add Error >> {e}"
 
 
 	def getData(self, text) -> str|dict:
@@ -35,7 +35,7 @@ class Database:
 			self.FILE.commit()
 			return data
 		except Exception as e:
-			return "Error: "+e
+			return f"Get Error: {e}"
 
 	def createTabel(self, messagemodel:MessageModel) -> str:
 		data = messagemodel.getVariablesType(messagemodel)
@@ -66,46 +66,77 @@ class Database:
 
 		#print(tabels)
 
-		text = f"""CREATE TABLE IF NOT EXISTS {tabelname}(\n num INT PRIMARY KEY,\n {tabels}) """
-		print(text)
+		text = f"""CREATE TABLE IF NOT EXISTS {tabelname}(\n num INTEGER PRIMARY KEY AUTOINCREMENT,\n {tabels}) """
+		#print(text)
 		result = self.addData(text)
 		self.FILE.commit()
 
-		return result 
+		return "Create "+ result 
 
 	def addMessage(self, messagemodel:MessageModel) -> str:
 		data = messagemodel.getVariables()
 		tabels = []
 		values = []
+		text = " INSERT INTO ("
 		tabelname = messagemodel.id
 		for item in data:
 			tabels.append(item)
 			values.append(data[item])
+			text = text + item
+		text = text + ") VALUES ("
+		for v in values:
+			text = text + v
+		text = text + ")"
 
 		result = self.createTabel(messagemodel)
-		if result == 'success':
-			text = f""" INSERT INTO {tabelname} ({tabels}) VALUES({values}) """
+		if result == 'Create success':
+			#text = f""" INSERT INTO {tabelname} ({tabels}) VALUES({values}) """
 			print(text)
 			result = self.addData(text)
 			self.FILE.commit()
 			return result
 
 		self.FILE.commit()
-		return result
+		return  result
 
 	def addMessageDict(self, message:dict, messagemodel:MessageModel) -> str:
 		tabels = []
 		values = []
+		text = ""
 		tabelname = message['id']
 		messagemodel.id = tabelname
-		messagemodel.to = message['to']
+		messagemodel.to_id = message['to_id']
 		result = self.createTabel(messagemodel)
 		for i in message:
 			tabels.append(i)
 			values.append(message[i])
+			if text == "":
+				text = f" INSERT INTO {tabelname} (" + i
+			else:
+				text = text + ","+ i
 
-		text = F""" INSERT INTO {tabelname} ({tabels}) VALUES({values}) """
-		if result == 'success':
+		text = text + ") VALUES ("
+		com = False
+		for v in values:
+			if not com:
+				if type(v) == str:
+					text = text + """ "{}" """.format(v)
+				else:
+					text = text + v
+				com = True
+			else:
+				if type(v) == str:
+					text = text+ "," + """ "{}" """.format(v)
+				else:
+					text = text+ "," + v
+
+			
+
+		text = text + ")"
+
+		#text = F""" INSERT INTO {tabelname} ({tabels}) VALUES({values}) """
+		#print(text)
+		if result == 'Create success':
 			self.FILE.commit()
 			return self.addData(text)
 
