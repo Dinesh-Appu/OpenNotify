@@ -111,8 +111,8 @@ class Server():
 	        return
 
 	    try:    
-	        print(f"Send Message to {id, client}")
 	        message_bytes = json.dumps(message).encode(self.ENCODING)
+	        #print(f"Send Message to {id} -> {message_bytes}")
 	        length =check_length(message_bytes)
 	        client.send(length.encode(self.ENCODING))
 	        client.send(message_bytes)
@@ -147,30 +147,35 @@ class Server():
 
 	def check_message(self, id:str):
 	    msg = []
-	    self.message_list = load_file(self.DATAFILE)
+	    if not id:
+	    	return
+	    print(f"_{id}_")
 	    print(f"Checking any Message received for {id}")
-	    if id in self.message_list.keys():
-	        print(f"Message Found for {id} \n message -> {self.message_list[id]}")
-	        print(f"  ")
-	        try:
-	            print("list >>> ", self.message_list[id])
-	            for message in self.message_list[id]:
-	            #for index in range(len(message_list[id])):
-	                #message = message_list[id][index]
-	                send_msg(id, message)
-	                msg.append(message)
-	                print(f"Message >>> {message}")
-	                #message_list[id].remove(message)
-	        except Exception as e:
-	            print(e)
+	    message_list = self.database.getMessages(id)
+	    if type(message_list) == str:
+	    	print(message_list)
+	    	print(f"No Message for {id}")
+	    	return
+	    print(f"Message Found for {id} \n message -> {message_list}")
+	    for message in message_list:
+	    	message = list(message)
+	    	m = (message[0], message[2])
+	    	message.pop(0)
+	    	print(message)
+	    	print(f"  ")
+	    	try:
+	    		self.send_msg(id, message)
+	    		msg.append(m)
+	    		print(f"Message >>> {message}")
+	    	except Exception as e:
+	    		print(e)
 	    try:
-	        for message in self.message_list[id]:
-	            if message in msg:
-	                self.message_list[id].remove(message) 
-	                print(f"Removed Message {message} ")
+	    	for i in msg:
+	    		print(i)
+	    		print(self.database.removeMessage(i[1], i[0]))
+	    		print(f"Message {i} Removed! ")
 	    except KeyError:
 	        print(f"User {id} Not Online")
-	    save_file(self.DATAFILE, self.message_list)
 
 	def listener(self):
 
@@ -228,7 +233,6 @@ class Server():
 	                print("Closing Server...")
 	                server.close()
 	                server = None
-	                save_file(self.DATAFILE, self.message_list)
 	                break
 	                sys.exit()
 	                print("Closed !!")
@@ -276,6 +280,7 @@ class Client():
 		# Objects
 		self.server = ""
 		self.receiver = CustomSignal()
+		self.model : MessageModel = None
 
 
 
@@ -283,13 +288,16 @@ class Client():
 	def start( self) -> None:
 
 		if self.APPID == None:
-			raise AttributeError("App Id is 'NoneType'. To set app id use Object(Client).setAppId")
+			raise AttributeError("App Id is 'NoneType'. To set app id use Object(Client).setAppId()")
 
 		if self.APPNAME == None:
-			raise AttributeError("App Name is 'NoneType'. To set app id use Object(Client).setAppName")
+			raise AttributeError("App Name is 'NoneType'. To set app id use Object(Client).setAppName()")
 
 		if self.ID == None:
-			raise AttributeError(" Id is 'NoneType'. To set app id use Object(Client).setId")
+			raise AttributeError(" Id is 'NoneType'. To set app id use Object(Client).setId()")
+
+		if self.model == None:
+			raise AttributeError( "MessageModel is 'NoneType'. to set message model use objectName(Client).setModel()")
 			
 		self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 		try:
@@ -333,8 +341,13 @@ class Client():
 		self.APPID = id
 
 	def setId(self, id) -> None:
+		id.replace(" ", "")
+		if id == "":
+			raise AttributeError("Id is Empty")
 		self.ID = id
 
+	def setModel(self, messagemodel:MessageModel) -> None:
+		self.model = messagemodel
 
 	def check_message(self, message:dict) -> dict:
 		if message['id'] == None:
@@ -344,6 +357,11 @@ class Client():
 			raise TypeError("'To' is None!")
 
 		return message
+
+	def load_model(self, message:list) -> MessageModel:
+		self.model.setVariables(self.model, message)
+		print(self.model.to_id)
+
 
 	def send_message(self, message) -> str:
 		message = self.check_message(message)
@@ -367,7 +385,7 @@ class Client():
 			try:
 				print('Waiting For Receive.....')
 				length = int(self.server.recv(self.MINIMUM_SIZE).decode(self.ENCODING))
-				message = server.recv(length)
+				message = self.server.recv(length)
 				#print("Received Bytes >>",message)
 
 				message_dict = json.loads(message.decode(self.ENCODING))

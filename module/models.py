@@ -1,4 +1,4 @@
-
+import inspect
 
 
 
@@ -19,13 +19,22 @@ class MessageModel():
 
 	# Get All Custom Variables name and value
 	def getVariabels(self) -> dict:
-		for var in inspect.getmethods(self):
+		for var in inspect.getmembers(self):
 			if not var[0].startswith('_'):
 				if not inspect.ismethod(var[1]):
 					items[var] = var[1]
 
 
 		return items
+
+	def setVariables(self, items:list) -> None:
+		no = 0
+		for var in inspect.getmembers(self):
+			if not var[0].startswith('_'):
+				if not inspect.ismethod(var[1]):
+					var[1] = items[no]
+					no = no+1
+		print(self.id)
 
 
 	def getVariablesType(self) -> dict:

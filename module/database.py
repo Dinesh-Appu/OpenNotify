@@ -41,7 +41,7 @@ class Database:
 		data = messagemodel.getVariablesType(messagemodel)
 		tabels = ""
 		types = ""
-		tabelname = messagemodel.id
+		tabelname = messagemodel.to_id
 		for item in data:
 
 			if data[item] == str:
@@ -103,9 +103,9 @@ class Database:
 		tabels = []
 		values = []
 		text = ""
-		tabelname = message['id']
-		messagemodel.id = tabelname
-		messagemodel.to_id = message['to_id']
+		tabelname = message['to_id']
+		messagemodel.id = message['id']
+		messagemodel.to_id = tabelname
 		result = self.createTabel(messagemodel)
 		for i in message:
 			tabels.append(i)
@@ -150,6 +150,11 @@ class Database:
 		result = self.getData(text)
 		self.FILE.commit()
 		return result
+
+
+	def removeMessage(self, id:str, num:int) -> str:
+		text = f""" DELETE FROM {id} WHERE num = {num} """
+		return self.addData(text)
 
 
 

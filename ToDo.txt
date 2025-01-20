@@ -9,8 +9,8 @@ $ <- completed
 	$	# on-time send message signal
 	$	# make as a python package
 	$	# store data in sqlite
-		# get data in sqlite
-		# after send msg delete data in sqlite
+	$	# get data in sqlite
+	$	# after send msg delete data in sqlite
 		# add user list in sqlite
 		# get user in sqlite
 		# remove user in sqlite
