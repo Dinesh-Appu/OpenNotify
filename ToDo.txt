@@ -11,10 +11,12 @@ $ <- completed
 	$	# store data in sqlite
 	$	# get data in sqlite
 	$	# after send msg delete data in sqlite
+	$	# custom message model
+	$	# Complete Testing
+		# Release a beta version 
 		# add user list in sqlite
 		# get user in sqlite
 		# remove user in sqlite
-	!	# custom message model
 	!	# custom exceptions
 		# easy to use as frame-work
 		# Two step Client verification

@@ -7,8 +7,8 @@ import os
 import json
 import uuid
 
-# custom models
-from .module.module import check_length, load_file, save_file
+# custom modules
+from .module.module import check_length, check_path, load_file, save_file
 from .module.exceptions import ServerAuthenticationError
 from .module.models import MessageModel
 from .module.database import Database
@@ -30,11 +30,12 @@ class Server():
 		self.DATAFILE:str = os.getcwd()+"/src/data.json"
 		self.APPFILE:str = os.getcwd()+"/src/app.json"
 
+		self.getInfo()
+
 		self.model : MessageModel = None
 		self.database = Database()
 
 
-		self.getInfo()
 
 		
 
@@ -91,6 +92,9 @@ class Server():
 		if type(result) == str:
 			return result
 
+		if not os.path.exists(os.getcwd()+'./src/'):
+			os.makedir(os.getcwd()+'./src/')
+
 		self.APPID =  result['app_id']
 		self.APPNAME =  result['app_name']
 
@@ -122,16 +126,15 @@ class Server():
 	        self.client_list.remove(client)
 	        print(client, "Removed !")
 
-	def receive_message(self, client):
-	    id = ""
+	def receive_message(self, client, id):
 	    while True:
 	        try:
 	            length = int(client.recv(self.MINIMUM_SIZE).decode(self.ENCODING))
 	            message = client.recv(length)
 	            message_dict = json.loads(message.decode(self.ENCODING))
 
-	            id = message_dict['id']
-	            print(message)
+	            #id = message_dict['id']
+	            print(message_dict)
 	            result = self.database.addMessageDict(message_dict, self.model)
 	            if result == "success":
 	            	print("added")
@@ -143,7 +146,7 @@ class Server():
 	            break
 	        except Exception as e:
 	            print(f"Error >>> {e} ")  
-	        self.check_message(id)  
+	        self.check_message(message_dict['to_id'])  
 
 	def check_message(self, id:str):
 	    msg = []
@@ -153,8 +156,12 @@ class Server():
 	    print(f"Checking any Message received for {id}")
 	    message_list = self.database.getMessages(id)
 	    if type(message_list) == str:
-	    	print(message_list)
-	    	print(f"No Message for {id}")
+	    	if message_list.find("no such table") < 0:
+	    		print(f"No Message for {id}")
+	    	else:
+	    		print(message_list)
+	    	return
+	    if len(message_list) == 0:
 	    	return
 	    print(f"Message Found for {id} \n message -> {message_list}")
 	    for message in message_list:
@@ -213,7 +220,7 @@ class Server():
 	    	client.send("OK".encode(self.ENCODING))
 
 	    	chaeck_thread = threading.Thread(target=lambda:self.check_message(id), daemon = True)
-	    	receive_thread = threading.Thread(target= lambda:self.receive_message(client), daemon = True)
+	    	receive_thread = threading.Thread(target= lambda:self.receive_message(client, id), daemon = True)
 
 	    	chaeck_thread.start()
 	    	receive_thread.start()
@@ -329,10 +336,12 @@ class Client():
 		
 		receive_thread.start()
 
-	def sendMessage(self, message) -> None:
-		reponse = self.send_message(message)
+	def sendMessage(self, message:MessageModel) -> None:
+		msg = message.getVariables()
+		reponse = self.send_message(msg)
 		if reponse == "Closed":
 			raise ConnectionResetError(f" Server {self.IP}:{self.PORT} is Closed! ")
+		return True
 
 	def setAppName(self, name:str) -> None:
 		self.APPNAME = name
@@ -341,6 +350,9 @@ class Client():
 		self.APPID = id
 
 	def setId(self, id) -> None:
+		if id == None:
+			raise AttributeError("Enter Value Id is 'NoneType'")
+
 		id.replace(" ", "")
 		if id == "":
 			raise AttributeError("Id is Empty")
@@ -359,8 +371,9 @@ class Client():
 		return message
 
 	def load_model(self, message:list) -> MessageModel:
-		self.model.setVariables(self.model, message)
-		print(self.model.to_id)
+		mod = self.model()
+		mod.setVariables( message)
+		return mod
 
 
 	def send_message(self, message) -> str:
@@ -389,9 +402,9 @@ class Client():
 				#print("Received Bytes >>",message)
 
 				message_dict = json.loads(message.decode(self.ENCODING))
-
+				
 				#print(f"Message >> {message_dict}")
-				self.receiver.emit(message_dict)
+				self.receiver.emit(self.load_model(message_dict))
 
 			except ConnectionResetError:
 				print(f" Server {self.IP}:{self.PORT} Connection is Closed! ")
