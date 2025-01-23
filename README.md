@@ -113,11 +113,11 @@ load_message(message:Message) -> None:
 ``` client.setAppName('OpenNotify') ```
 
 ### Set Id 
-Unique Client Id for server identify the user
+##### Unique Client Id for server identify the user
 ``` client.setId('Client456') ```
 
 ### Set Receiver 
-#####Set message receiver function that will trigger when a message receives from server 
+##### Set message receiver function that will trigger when a message receives from server 
 ``` client.receiver.connect(load_message) ```
 
 ### Start the Client
