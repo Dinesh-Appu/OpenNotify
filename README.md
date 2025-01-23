@@ -4,7 +4,7 @@
 <details>
   <summary><strong>Setup Server</strong></summary>
 
- - [Import Package and Required Object](#import-package-and-required-object)
+ - [Import Package and Required Object For Server](#import-package-and-required-object-for-server)
  - [Create Server Object](#create-server-object)
  - [Set the Message Model](#set-the-message-model)
  - [Generate Id ](#generate-id)
@@ -15,7 +15,7 @@
 <details>
   <summary><strong>Setup Client</strong></summary>
 
- - [Import Package and Required Object](#import-package-and-required-object)
+ - [Import Package and Required Object For Client](#import-package-and-required-object-for-client)
  - [Create Client Object](#create-client-object)
  - [Message Receiver Function](#message-receiver-function)
  - [Set Message Model](#set-message-model)
@@ -33,7 +33,7 @@
 # Server
 First setup all requierd variables and objects
 
-### Import Package and Required Object
+### Import Package and Required Object For Server
 ```from OpenNotify import Server, MessageModel ```
 
 ### Custom Message model 
@@ -72,7 +72,7 @@ class Message(MessageModel):
 # Client
 First setup all requierd variables and objects
 
-### Import Package and Required Object
+### Import Package and Required Object For Client
 ```from OpenNotify import Client, MessageModel ```
 
 ### Custom Message model 
