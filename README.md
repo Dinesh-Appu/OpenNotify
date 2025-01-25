@@ -4,9 +4,7 @@
 <details>
   <summary><strong>Setup Server</strong></summary>
 
- - [Import Package and Required Object](#import-package-and-required-object)
- - [Server Ip Address](#server-ip-address)
- - [Server Port](#server-port)
+ - [Import Package and Required Object For Server](#import-package-and-required-object-for-server)
  - [Create Server Object](#create-server-object)
  - [Set the Message Model](#set-the-message-model)
  - [Generate Id ](#generate-id)
@@ -14,14 +12,10 @@
  - [Start The Server](#start-the-server)
 
 </details>
-</br>
-
 <details>
   <summary><strong>Setup Client</strong></summary>
 
- - [Import Package and Required Object](#import-package-and-required-object)
- - [Server Ip Address](#server-ip-address)
- - [Server Port](#server-port)
+ - [Import Package and Required Object For Client](#import-package-and-required-object-for-client)
  - [Create Client Object](#create-client-object)
  - [Message Receiver Function](#message-receiver-function)
  - [Set Message Model](#set-message-model)
@@ -39,7 +33,7 @@
 # Server
 First setup all requierd variables and objects
 
-### Import Package and Required Object
+### Import Package and Required Object For Server
 ```from OpenNotify import Server, MessageModel ```
 
 ### Custom Message model 
@@ -55,14 +49,9 @@ class Message(MessageModel):
 	icon:str
 ```
 
-### Server Ip address
-``` ip : str = '127.0.0.1' ```
-### Server Port
-``` port : int = 200 ```
-
 ### Create Server Object
 ##### Set the parameter of ip(String), port(integer)
-``` server = Server(ip, port) ```
+``` server = Server('127.0.0.1', 200) ```
 
 ### Set the Message Model 
 ##### Set the model We Created on the Start
@@ -77,12 +66,13 @@ class Message(MessageModel):
 ### Start the server
 ``` server.start() ```
 
+![Tenminal Pitcher](https://github.com/Dinesh-Appu/OpenNotify/blob/main/src/Screenshot%202025-01-22%20180520.png)
 </br>
 
 # Client
 First setup all requierd variables and objects
 
-### Import Package and Required Object
+### Import Package and Required Object For Client
 ```from OpenNotify import Client, MessageModel ```
 
 ### Custom Message model 
@@ -106,14 +96,9 @@ load_message(message:Message) -> None:
     print(f" {message.id} -> {message.body}")
 ```
 
-### Server Ip address
-``` ip : str = '127.0.0.1' ```
-### Server Port
-``` port : int = 200 ```
-
 ### Create Client Object
 ##### Set the parameter of ip(String), port(integer)
-``` client = Client(ip, port) ```
+``` client = Client( '127.0.0.1', 200) ```
 
 ### Set Message Model 
 ##### Set the model We Created on the Start
@@ -121,18 +106,18 @@ load_message(message:Message) -> None:
 
 ### set App Id 
 ##### Set the App Id that we generate on the server
-``` client.setAppId(self.APPID) ```
+``` client.setAppId('6842944a-435c-41fc-b3a4-cdb918352214') ```
 
 ### Set App Name
 ##### Set the app name that we entered on the server
-``` client.setAppName(self.APPNAME) ```
+``` client.setAppName('OpenNotify') ```
 
 ### Set Id 
-Unique Client Id for server identify the user
-``` client.setId(self.ID) ```
+##### Unique Client Id for server identify the user
+``` client.setId('Client456') ```
 
 ### Set Receiver 
-#####Set message receiver function that will trigger when a message receives from server 
+##### Set message receiver function that will trigger when a message receives from server 
 ``` client.receiver.connect(load_message) ```
 
 ### Start the Client
@@ -145,10 +130,10 @@ Unique Client Id for server identify the user
 ``` message = Message() ```
 
 ##### Set Client Id
-``` message.id = self.ID ```
+``` message.id = 'Cleint456' ```
 ##### Set To Id
 ###### message to client id
-``` message.to_id = self.TO ```
+``` message.to_id = 'Client123' ```
 
 ##### Set Body
 ###### body is the content you will send to the other client
