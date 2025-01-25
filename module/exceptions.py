@@ -6,14 +6,19 @@ from typing import Optional
 
 
 
-class ServerAuthenticationError(BaseException):
+class ServerAuthenticationError(Exception):
 
 	def __init__(self, text : Optional[str] = None):
 		self.text = text
 
 
+class ServerNotConnectedError(Exception):
 
-class DatabaseError(BaseException):
+	def __init__(self, text : Optional[str] = None):
+		self.text = text
+
+
+class DatabaseError(Exception):
 
 	def __init__(self, text : Optional[str] = None):
 		self.text = text

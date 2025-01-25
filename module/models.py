@@ -4,8 +4,17 @@ import inspect
 
 class MessageModel():
 
+	# user variable
 	id: str = None
-	to_id: str = None
+	title:str = None
+	body:str = None
+	image:str = None
+	icon:str = None
+	sound:str = "Default"
+	action:str = "Default"
+	# not user variable
+	token:str = None
+	appid:str = None
 
 	def __init__(self):
 		#print("message model")
@@ -23,7 +32,7 @@ class MessageModel():
 	def getVariables(self) -> dict:
 		items = {}
 		for var in inspect.getmembers(self):
-			if not var[0].startswith('_'):
+			if not var[0].startswith('__'):
 				if not inspect.ismethod(var[1]):
 					items[var[0]] = var[1]
 
@@ -62,11 +71,11 @@ if __name__ == "__main__":
 		view:bool
 
 
-	msg = TextMsg()
+	msg = MessageModel()
 	#msg.text = None
-	i = ["dinesh", 'appu', 'hi da', False]
+	i = ["@dinesh", 'hi da']
 	msg.setVariables(i)
 
-	print(msg.text)
+	print(msg.body)
 	print(msg.getVariables())
 

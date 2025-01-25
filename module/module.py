@@ -2,6 +2,9 @@ import json
 import sys
 import os
 
+from .system import getSystemInfo
+
+
 
 
 def load_file(filename:str):
@@ -63,6 +66,136 @@ def data_load(data):
 	for d in data['@appu']:
 		print(d)
 
+def unique_token(appname) -> str:
+	#print(dir(system))
+	info = json.loads(getSystemInfo())
+	text = f"{info['ip-address']}-{appname}-{info['mac-address']}"
+	#print(f'{len(text)} -> {text}')
+	text = text.replace('.','')
+	text = text.replace(':','')
+	text = text.replace('-','')
+	text = text.lower()
+	#print(f'{len(text)} -> {text}')
+	newText = ""
+	oldText = text
+	for t in oldText:
+
+		match t:
+			case 'a':
+				t = 'k'
+			case 'b':
+				t = '3'
+			case 'c':
+				t = 'g'
+			case 'd':
+				t = '4'
+			case 'e':
+				t = 'q'
+			case 'f':
+				t = 'i'
+			case 'g':
+				t = '1'
+			case 'h':
+				t = 's'
+			case 'i':
+				t = 'z'
+			case 'j':
+				t = '0'
+			case 'k':
+				t = 'c'
+			case 'l':
+				t = 'e'
+			case 'm':
+				t = 'd'
+			case 'n':
+				t = 'x'
+			case 'o':
+				t = '5'
+			case 'p':
+				t = '2'
+			case 'q':
+				t = 'w'
+			case 'r':
+				t = 'y'
+			case 's':
+				t = 'u'
+			case 't':
+				t = 'p'
+			case 'u':
+				t = 'v'
+			case 'v':
+				t = 'b'
+			case 'w':
+				t = 'n'
+			case 'x':
+				t = '6'
+			case 'y':
+				t = 'r'
+			case 'z':
+				t = 'o'
+			case '1':
+				t = '7'
+			case '2':
+				t = 'l'
+			case '3':
+				t = 'h'
+			case '4':
+				t = 'm'
+			case '5':
+				t = 'a'
+			case '6':
+				t = 'f'
+			case '7':
+				t = '8'
+			case '8':
+				t = '9'
+			case '9':
+				t = 't'
+			case '0':
+				t = 'j'
+
+		newText = newText + t
+
+	#print(f'{len(oldText)} -> {oldText}')
+	#print(f'{len(newText)} -> {newText}')
+	return newText
+	nos = 0
+	num = []
+	for x in oldText:
+		num.append(x)
+		no = newText.count(x)
+		if no < 1:
+			#print(f"{x} -> {no}")
+			... 
+
+	#print('-----------------------------------------------------------------------------')
+	#for n in newText:
+		#times = newText.count(n)
+		#if times > 1:
+			#print(f"{num[nos]} -> {n} = {times}")
+
+		#nos += 1
+
+
+class CustomSignal():
+
+	def __init__(self):
+		self.num : int
+		self.trigger_function = None
+
+
+	def emit(self, text):
+		if self.trigger_function == None:
+			return
+
+		self.trigger_function(text)
+
+
+	def connect(self, func):
+		self.trigger_function = func
+
+
+
 
 
 if __name__ == '__main__':
@@ -111,6 +244,8 @@ if __name__ == '__main__':
 	filename = "../src/test.json"
 	value = data_load(data)
 	print(value)
+
+	unique_token('ChatBox')
 
 	#print(check_path('G:/Github/projects/src/.data.json'))
 

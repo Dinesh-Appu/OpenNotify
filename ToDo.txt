@@ -13,7 +13,7 @@ $ <- completed
 	$	# after send msg delete data in sqlite
 	$	# custom message model
 	$	# Complete Testing
-		# Release a beta version 
+	$	# Release a beta version 
 		# add user list in sqlite
 		# get user in sqlite
 		# remove user in sqlite
